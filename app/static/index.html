@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Church Sermon Clipper</title>
+  <style>
+    :root { --bg: #f8fafc; --card: #ffffff; --ink: #172554; --ink-soft: #475569; --primary: #0f766e; --border: #dbeafe; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(160deg, #f0fdfa, #eff6ff 55%, #fff7ed); color: var(--ink); min-height: 100vh; }
+    .wrap { max-width: 900px; margin: 0 auto; padding: 24px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06); margin-bottom: 16px; }
+    h1 { margin: 0 0 8px; font-size: 1.7rem; }
+    p { margin: 0 0 10px; color: var(--ink-soft); }
+    label { display: block; margin: 10px 0 6px; font-weight: 600; }
+    input[type="file"], input[type="number"] { width: 100%; border: 1px solid #cbd5e1; border-radius: 10px; padding: 10px; font-size: 1rem; background: #fff; }
+    button { margin-top: 14px; border: 0; border-radius: 10px; padding: 11px 16px; font-size: 1rem; color: white; background: var(--primary); cursor: pointer; }
+    button:disabled { opacity: 0.65; cursor: not-allowed; }
+    .status { font-weight: 600; margin-top: 10px; }
+    .error { color: #b91c1c; white-space: pre-wrap; }
+    .clips { display: grid; gap: 12px; }
+    .clip { border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; background: #f8fafc; }
+    .clip h3 { margin: 0 0 8px; }
+    video { width: 100%; border-radius: 8px; margin-top: 8px; }
+    .meta { color: #334155; margin: 4px 0; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>Church Sermon Clipper</h1>
+      <p>Upload one long sermon audio/video and get short, shareable clips with titles and hooks.</p>
+      <form id="uploadForm">
+        <label for="file">Sermon File (MP4/MP3/WAV)</label>
+        <input id="file" name="file" type="file" accept="audio/*,video/*" required />
+        <label for="clips">How many short clips?</label>
+        <input id="clips" name="clips" type="number" min="1" max="10" value="5" />
+        <button id="submitBtn" type="submit">Generate Short Clips</button>
+      </form>
+      <p id="status" class="status"></p>
+      <p id="error" class="error"></p>
+    </section>
+    <section class="card">
+      <h2>Results</h2>
+      <div id="results" class="clips"></div>
+    </section>
+  </main>
+  <script>
+    const form = document.getElementById('uploadForm');
+    const fileInput = document.getElementById('file');
+    const clipsInput = document.getElementById('clips');
+    const statusEl = document.getElementById('status');
+    const errorEl = document.getElementById('error');
+    const resultsEl = document.getElementById('results');
+    const submitBtn = document.getElementById('submitBtn');
+    function resetUi() { errorEl.textContent = ''; resultsEl.innerHTML = ''; }
+    function formatTime(sec) { const s = Math.floor(sec % 60).toString().padStart(2, '0'); const m = Math.floor((sec / 60) % 60).toString().padStart(2, '0'); const h = Math.floor(sec / 3600); return h > 0 ? `${h}:${m}:${s}` : `${m}:${s}`; }
+    function renderResults(data) {
+      if (!data.clips || data.clips.length === 0) { resultsEl.innerHTML = '<p>No clips were generated. Try another sermon file.</p>'; return; }
+      for (const clip of data.clips) {
+        const div = document.createElement('article');
+        div.className = 'clip';
+        const link = `<a href="${clip.url}" target="_blank" rel="noopener">Download Clip</a>`;
+        div.innerHTML = `<h3>${clip.title}</h3><p class="meta"><strong>Hook:</strong> ${clip.hook}</p><p class="meta"><strong>Why this works:</strong> ${clip.reason}</p><p class="meta"><strong>Time:</strong> ${formatTime(clip.start)} - ${formatTime(clip.end)} (${Math.round(clip.end - clip.start)}s)</p><p class="meta">${link}</p><video controls src="${clip.url}"></video>`;
+        resultsEl.appendChild(div);
+      }
+    }
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      resetUi();
+      const file = fileInput.files[0];
+      const clips = Number(clipsInput.value || 5);
+      if (!file) { errorEl.textContent = 'Please select a sermon file first.'; return; }
+      submitBtn.disabled = true;
+      statusEl.textContent = 'Processing sermon. This may take a few minutes...';
+      try {
+        const body = new FormData();
+        body.append('file', file);
+        const response = await fetch(`/process?clips=${encodeURIComponent(clips)}`, { method: 'POST', body });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || 'Upload failed');
+        statusEl.textContent = `Done. Created ${payload.clips.length} clip(s). Job ID: ${payload.job_id}`;
+        renderResults(payload);
+      } catch (err) {
+        statusEl.textContent = '';
+        errorEl.textContent = `Error: ${err.message}`;
+      } finally { submitBtn.disabled = false; }
+    });
+  </script>
+</body>
+</html>
