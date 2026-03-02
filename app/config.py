@@ -19,7 +19,10 @@ WHISPER_COMPUTE_TYPE = os.getenv("WHISPER_COMPUTE_TYPE", "int8")
 
 MAX_SHORTS = int(os.getenv("MAX_SHORTS", "5"))
 MIN_SHORT_SECONDS = int(os.getenv("MIN_SHORT_SECONDS", "25"))
-MAX_SHORT_SECONDS = int(os.getenv("MAX_SHORT_SECONDS", "60"))
+MAX_SHORT_SECONDS = int(os.getenv("MAX_SHORT_SECONDS", "30"))
+OUTPUT_WIDTH = int(os.getenv("OUTPUT_WIDTH", "1080"))
+OUTPUT_HEIGHT = int(os.getenv("OUTPUT_HEIGHT", "1920"))
+CAPTION_FONT_SIZE = int(os.getenv("CAPTION_FONT_SIZE", "18"))
 
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)

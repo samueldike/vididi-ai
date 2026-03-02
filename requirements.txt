@@ -6,3 +6,4 @@ faster-whisper==1.1.1
 openai==1.99.9
 ffmpeg-python==0.2.0
 python-dotenv==1.1.1
+yt-dlp

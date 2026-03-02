@@ -5,13 +5,18 @@ Long-form to short-form sermon clipper using private STT + LLM-assisted clip sel
 ## What it does
 - Transcribes long audio/video with `faster-whisper`
 - Uses Groq API (OpenAI-compatible) to select viral-ready short segments
+- Accepts either uploaded file or YouTube URL input
+- Enforces configurable max clip duration (default 30 seconds)
+- Outputs TikTok/Reels-ready vertical `9:16` clips (1080x1920 default)
+- Burns captions directly into each output clip
 - Cuts final MP4 clips with FFmpeg
 - Includes simple web UI for non-technical staff
 
 ## Requirements
 - Python 3.10+
-- FFmpeg installed and available on PATH
+- FFmpeg installed and available on PATH (with subtitles/libass support)
 - Groq API key
+- `yt-dlp` (installed by requirements)
 
 ## Setup
 ```bash
@@ -30,7 +35,10 @@ WHISPER_DEVICE=auto
 WHISPER_COMPUTE_TYPE=int8
 MAX_SHORTS=5
 MIN_SHORT_SECONDS=25
-MAX_SHORT_SECONDS=60
+MAX_SHORT_SECONDS=30
+OUTPUT_WIDTH=1080
+OUTPUT_HEIGHT=1920
+CAPTION_FONT_SIZE=18
 ```
 
 ## Run App (API + Web UI)
@@ -40,14 +48,20 @@ uvicorn app.main:app --reload --port 8000
 Open UI: `http://127.0.0.1:8000/`
 
 ## UI Flow
-1. Upload sermon audio/video file
+1. Upload sermon file or paste YouTube URL
 2. Choose number of short clips (1-10)
-3. Click **Generate Short Clips**
-4. Preview/download each generated clip
+3. Set max duration per clip (10-120s, default 30s)
+4. Click **Generate Short Clips**
+5. Preview/download each generated clip
 
 ## API
 Open docs: `http://127.0.0.1:8000/docs`
-Use `POST /process` with media file + optional `clips` query.
+Use `POST /process` with multipart form:
+- `file` (optional)
+- `youtube_url` (optional)
+- plus query params `clips` and `max_seconds`
+
+At least one of `file` or `youtube_url` is required.
 
 ## Run CLI
 ```bash
