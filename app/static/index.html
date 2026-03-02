@@ -63,6 +63,16 @@
     function formatTime(sec) { const s = Math.floor(sec % 60).toString().padStart(2, '0'); const m = Math.floor((sec / 60) % 60).toString().padStart(2, '0'); const h = Math.floor(sec / 3600); return h > 0 ? `${h}:${m}:${s}` : `${m}:${s}`; }
     function renderResults(data) {
       if (!data.clips || data.clips.length === 0) { resultsEl.innerHTML = '<p>No clips were generated. Try another sermon file.</p>'; return; }
+      if (data.metrics) {
+        const m = document.createElement('article');
+        m.className = 'clip';
+        m.innerHTML = `<h3>Processing Metrics</h3>
+          <p class="meta"><strong>Total:</strong> ${data.metrics.elapsed_seconds}s</p>
+          <p class="meta"><strong>Stages:</strong> input ${data.metrics.stage_seconds.input}s, stt ${data.metrics.stage_seconds.stt}s, llm ${data.metrics.stage_seconds.llm}s, render ${data.metrics.stage_seconds.render}s</p>
+          <p class="meta"><strong>Accuracy Proxy:</strong> speech ratio ${data.metrics.accuracy_proxy.speech_ratio}, speech ${data.metrics.accuracy_proxy.speech_duration}s / transcript ${data.metrics.accuracy_proxy.transcript_duration}s</p>
+          <p class="meta"><a href="${data.log_url}" target="_blank" rel="noopener">View Detailed Job Log</a></p>`;
+        resultsEl.appendChild(m);
+      }
       for (const clip of data.clips) {
         const div = document.createElement('article');
         div.className = 'clip';
@@ -86,7 +96,9 @@
         if (file) body.append('file', file);
         if (youtubeUrl) body.append('youtube_url', youtubeUrl);
         const response = await fetch(`/process?clips=${encodeURIComponent(clips)}&max_seconds=${encodeURIComponent(maxSeconds)}`, { method: 'POST', body });
-        const payload = await response.json();
+        const raw = await response.text();
+        let payload;
+        try { payload = JSON.parse(raw); } catch { payload = { detail: raw.slice(0, 400) }; }
         if (!response.ok) throw new Error(payload.detail || 'Upload failed');
         statusEl.textContent = `Done. Created ${payload.clips.length} clip(s). Job ID: ${payload.job_id}`;
         renderResults(payload);

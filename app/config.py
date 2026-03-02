@@ -23,6 +23,7 @@ MAX_SHORT_SECONDS = int(os.getenv("MAX_SHORT_SECONDS", "30"))
 OUTPUT_WIDTH = int(os.getenv("OUTPUT_WIDTH", "1080"))
 OUTPUT_HEIGHT = int(os.getenv("OUTPUT_HEIGHT", "1920"))
 CAPTION_FONT_SIZE = int(os.getenv("CAPTION_FONT_SIZE", "18"))
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
 
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)

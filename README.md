@@ -9,6 +9,7 @@ Long-form to short-form sermon clipper using private STT + LLM-assisted clip sel
 - Enforces configurable max clip duration (default 30 seconds)
 - Outputs TikTok/Reels-ready vertical `9:16` clips (1080x1920 default)
 - Burns captions directly into each output clip
+- Writes detailed per-job logs and processing metrics for troubleshooting
 - Cuts final MP4 clips with FFmpeg
 - Includes simple web UI for non-technical staff
 
@@ -39,6 +40,7 @@ MAX_SHORT_SECONDS=30
 OUTPUT_WIDTH=1080
 OUTPUT_HEIGHT=1920
 CAPTION_FONT_SIZE=18
+LOG_LEVEL=INFO
 ```
 
 ## Run App (API + Web UI)
@@ -62,6 +64,11 @@ Use `POST /process` with multipart form:
 - plus query params `clips` and `max_seconds`
 
 At least one of `file` or `youtube_url` is required.
+
+### Logs and tracking
+- Per-job detailed log: `GET /jobs/{job_id}/log`
+- JSON log file path: `outputs/{job_id}/job.log.jsonl`
+- Job summary/metrics path: `outputs/{job_id}/job.meta.json`
 
 ## Run CLI
 ```bash
