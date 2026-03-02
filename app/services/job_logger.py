@@ -12,6 +12,8 @@ class JobLogger:
         self.job_dir = job_dir
         self.log_path = job_dir / "job.log.jsonl"
         self.meta_path = job_dir / "job.meta.json"
+        self.status_path = job_dir / "job.status.json"
+        self.result_path = job_dir / "job.result.json"
         self.events: list[dict[str, Any]] = []
 
     def event(self, stage: str, message: str, **data: Any) -> None:
@@ -29,3 +31,13 @@ class JobLogger:
     def write_meta(self, **meta: Any) -> None:
         self.meta_path.write_text(json.dumps(meta, indent=2), encoding="utf-8")
 
+    def write_status(self, status: str, **data: Any) -> None:
+        payload = {
+            "job_id": self.job_id,
+            "status": status,
+            **data,
+        }
+        self.status_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+    def write_result(self, result: dict[str, Any]) -> None:
+        self.result_path.write_text(json.dumps(result, indent=2), encoding="utf-8")

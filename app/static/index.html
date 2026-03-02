@@ -81,6 +81,22 @@
         resultsEl.appendChild(div);
       }
     }
+    async function pollUntilDone(statusUrl, resultUrl) {
+      while (true) {
+        const res = await fetch(statusUrl, { headers: { "ngrok-skip-browser-warning": "true" } });
+        const st = await res.json();
+        statusEl.textContent = `Status: ${st.status} (${st.progress || 0}%) - ${st.message || ''}`;
+        if (st.status === 'done') {
+          const rr = await fetch(resultUrl, { headers: { "ngrok-skip-browser-warning": "true" } });
+          return rr.json();
+        }
+        if (st.status === 'error') {
+          throw new Error(st.message || 'Processing failed');
+        }
+        await new Promise(r => setTimeout(r, 3000));
+      }
+    }
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       resetUi();
@@ -95,13 +111,19 @@
         const body = new FormData();
         if (file) body.append('file', file);
         if (youtubeUrl) body.append('youtube_url', youtubeUrl);
-        const response = await fetch(`/process?clips=${encodeURIComponent(clips)}&max_seconds=${encodeURIComponent(maxSeconds)}`, { method: 'POST', body });
+        const response = await fetch(`/process?clips=${encodeURIComponent(clips)}&max_seconds=${encodeURIComponent(maxSeconds)}`, {
+          method: 'POST',
+          body,
+          headers: { "ngrok-skip-browser-warning": "true" }
+        });
         const raw = await response.text();
         let payload;
         try { payload = JSON.parse(raw); } catch { payload = { detail: raw.slice(0, 400) }; }
         if (!response.ok) throw new Error(payload.detail || 'Upload failed');
-        statusEl.textContent = `Done. Created ${payload.clips.length} clip(s). Job ID: ${payload.job_id}`;
-        renderResults(payload);
+        statusEl.textContent = `Job started: ${payload.job_id}. Processing...`;
+        const finalPayload = await pollUntilDone(payload.status_url, payload.result_url);
+        statusEl.textContent = `Done. Created ${finalPayload.clips.length} clip(s). Job ID: ${finalPayload.job_id}`;
+        renderResults(finalPayload);
       } catch (err) {
         statusEl.textContent = '';
         errorEl.textContent = `Error: ${err.message}`;

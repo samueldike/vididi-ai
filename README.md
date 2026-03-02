@@ -35,7 +35,7 @@ WHISPER_MODEL=large-v3
 WHISPER_DEVICE=auto
 WHISPER_COMPUTE_TYPE=int8
 MAX_SHORTS=5
-MIN_SHORT_SECONDS=25
+MIN_SHORT_SECONDS=15
 MAX_SHORT_SECONDS=30
 OUTPUT_WIDTH=1080
 OUTPUT_HEIGHT=1920
@@ -64,9 +64,15 @@ Use `POST /process` with multipart form:
 - plus query params `clips` and `max_seconds`
 
 At least one of `file` or `youtube_url` is required.
+`POST /process` is async and returns immediately with:
+- `status_url` (`/jobs/{job_id}/status`)
+- `result_url` (`/jobs/{job_id}/result`)
+- `log_url` (`/jobs/{job_id}/log`)
 
 ### Logs and tracking
 - Per-job detailed log: `GET /jobs/{job_id}/log`
+- Per-job status: `GET /jobs/{job_id}/status`
+- Per-job final result: `GET /jobs/{job_id}/result`
 - JSON log file path: `outputs/{job_id}/job.log.jsonl`
 - Job summary/metrics path: `outputs/{job_id}/job.meta.json`
 

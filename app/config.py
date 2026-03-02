@@ -18,7 +18,7 @@ WHISPER_DEVICE = os.getenv("WHISPER_DEVICE", "auto")
 WHISPER_COMPUTE_TYPE = os.getenv("WHISPER_COMPUTE_TYPE", "int8")
 
 MAX_SHORTS = int(os.getenv("MAX_SHORTS", "5"))
-MIN_SHORT_SECONDS = int(os.getenv("MIN_SHORT_SECONDS", "25"))
+MIN_SHORT_SECONDS = int(os.getenv("MIN_SHORT_SECONDS", "15"))
 MAX_SHORT_SECONDS = int(os.getenv("MAX_SHORT_SECONDS", "30"))
 OUTPUT_WIDTH = int(os.getenv("OUTPUT_WIDTH", "1080"))
 OUTPUT_HEIGHT = int(os.getenv("OUTPUT_HEIGHT", "1920"))
